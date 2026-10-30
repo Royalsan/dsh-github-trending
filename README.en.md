@@ -54,6 +54,21 @@ Installing straight from GitHub (the repository root is the package root, and no
 plugin_manager(action="install_bundle", target="github:Royalsan/dsh-github-trending")
 ```
 
+From npm (published to the npm registry; no git and no build step):
+
+```text
+plugin_manager(action="install_bundle", target="@royalsan/dsh-github-trending")
+```
+
+From the prebuilt tarball attached to a GitHub Release (no clone, no build — handy behind a flaky network):
+
+```text
+plugin_manager(action="install_bundle", target="https://github.com/Royalsan/dsh-github-trending/releases/latest/download/dsh-github-trending.tgz")
+```
+
+All three sources install the same compiled files; the npm route goes through the registry configured for the profile,
+so a mirror that has not synced yet may lag by minutes to hours.
+
 ## Configuration
 
 `apply(ctx, config)` accepts these fields (all optional):
@@ -121,6 +136,32 @@ node test/measure-panel.mjs daily       # or all at once: start the collector an
 `test/out/` receives the panel HTML snapshots, layout metrics and preview images (`panel-*.html` / `panel-*.png`) for
 offline layout checks. The preview page renders with fallback `--dsw-alias-*` values so it does not need the Harness shell,
 and its self-check reports `overflowX`, card columns and KPI counts to catch horizontal overflow.
+
+## Releasing
+
+A release is four steps, in this order:
+
+```powershell
+# 1. bump the version in package.json, rebuild the emitted files, and commit them
+node build.mjs
+
+# 2. tag and push
+git tag v1.0.0 ; git push origin main --tags
+
+# 3. pack and publish to npm (the scope needs access=public, already set in publishConfig)
+npm pack --pack-destination dist
+npm publish --registry https://registry.npmjs.org/
+
+# 4. attach the tarball to the GitHub Release
+#    the asset name must stay version-free as dsh-github-trending.tgz:
+#    the catalog entry uses the fixed releases/latest/download/dsh-github-trending.tgz URL
+Copy-Item dist/royalsan-dsh-github-trending-<version>.tgz dist/dsh-github-trending.tgz
+gh release create v1.0.0 dist/dsh-github-trending.tgz --title v1.0.0 --notes "..."
+```
+
+Without `gh`, create `v1.0.0` under Releases → Draft a new release in the web UI and drop
+`dist/dsh-github-trending.tgz` into the assets area. The `repository` field points back at this repo, so the plugin
+market links the npm package automatically (never hand-write an `npm:` key in the catalog entry).
 
 ## Notes
 

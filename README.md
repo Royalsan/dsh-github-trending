@@ -48,6 +48,20 @@ plugin_manager(action="install_bundle", target="<绝对路径>/dsh-github-trendi
 plugin_manager(action="install_bundle", target="github:Royalsan/dsh-github-trending")
 ```
 
+从 npm 安装（已发布到 npm registry，无需 git 与构建）：
+
+```text
+plugin_manager(action="install_bundle", target="@royalsan/dsh-github-trending")
+```
+
+从 GitHub Release 的预构建 tarball 安装（不拉源码、不跑构建，适合网络受限时）：
+
+```text
+plugin_manager(action="install_bundle", target="https://github.com/Royalsan/dsh-github-trending/releases/latest/download/dsh-github-trending.tgz")
+```
+
+三种来源装的是同一份编译产物；npm 方式走 profile 配置的 registry，国内镜像未同步时可能晚几分钟到几小时。
+
 ## 配置
 
 `apply(ctx, config)` 支持以下字段（均有默认值）：
@@ -114,6 +128,31 @@ node test/measure-panel.mjs daily       # 或一步到位：起采集器 + 开�
 
 `test/out/` 下会生成面板 HTML 快照、布局指标与预览图（`panel-*.html` / `panel-*.png`），便于离线检查排版。
 预览页用 `--dsw-alias-*` 的回退取值渲染，不依赖 Harness 外壳；布局自检会回传 `overflowX`、卡片列数、KPI 数量等指标，用来发现横向溢出之类的问题。
+
+## 发布（维护者）
+
+发布一个新版本需要四步，顺序不能颠倒：
+
+```powershell
+# 1. 升版本号（package.json）后重建编译产物，产物必须进仓库
+node build.mjs
+
+# 2. 打 tag 并推送
+git tag v1.0.0 ; git push origin main --tags
+
+# 3. 打 tarball 并发布到 npm（包名带 scope，access 已在 publishConfig 里设为 public）
+npm pack --pack-destination dist
+npm publish --registry https://registry.npmjs.org/
+
+# 4. 把 tarball 作为 Release 附件上传
+#    资产名必须是不带版本号的 dsh-github-trending.tgz，
+#    市场条目用的是 releases/latest/download/dsh-github-trending.tgz 这个固定地址
+Copy-Item dist/royalsan-dsh-github-trending-<version>.tgz dist/dsh-github-trending.tgz
+gh release create v1.0.0 dist/dsh-github-trending.tgz --title v1.0.0 --notes "..."
+```
+
+没有 `gh` 时，在 GitHub 网页上「Releases → Draft a new release」创建 `v1.0.0`，把 `dist/dsh-github-trending.tgz` 拖进附件区即可。
+`repository` 字段已指向本仓库，npm 上架后会被插件市场自动关联（条目里**不要**手写 `npm:` 键）。
 
 ## 说明
 
