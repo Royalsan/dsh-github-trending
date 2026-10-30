@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "title": "GitHub 趋势雷达",
+    "description": "抓取 GitHub Trending 日榜、周榜、月榜并支持按编程语言筛选，对每个仓库做结构化分析（项目简介、star 增量、核心技术栈、亮点与风险），在面板中渲染图文卡片报告，并支持导出 Markdown。"
+  },
+  "nav": {
+    "title": "GitHub 趋势"
+  }
+}

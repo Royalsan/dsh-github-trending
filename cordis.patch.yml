@@ -1,0 +1,3 @@
+- insert:
+    - id: dsh-github-trending
+      name: '@royalsan/dsh-github-trending'

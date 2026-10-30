@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "title": "GitHub Trending Radar",
+    "description": "Fetch GitHub Trending (daily / weekly / monthly, filterable by language), analyze every repository (summary, star growth, stack, highlights, risks) and render an interactive card report with charts and markdown export."
+  },
+  "nav": {
+    "title": "GitHub Trending"
+  }
+}
