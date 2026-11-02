@@ -22,3 +22,4 @@ npm-debug.log*
 # 注意：index.js、client.js、lib/*.js 是插件运行时真正加载的文件，
 # 本包没有 prepare/postinstall 构建脚本，因此必须提交到仓库，
 # 不要在这里忽略它们（否则从 git 安装的副本无法运行）。
+.npm-cache/

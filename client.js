@@ -19,6 +19,17 @@ window.__ModuleLoader__.load({
 
     const NS = 'dsh-github-trending'
     const BASE = '/dsh-github-trending'
+
+/**
+ * A 404 here means the HTTP route never mounted (host half not loaded, or the
+ * carrier activated after the plugin). Say so instead of printing a bare status.
+ */
+function describeFailure(status, body) {
+  if (status === 404) {
+    return '报告接口未挂载（HTTP 404）· 主机端插件未加载，请重启 Harness 或重新启用插件'
+  }
+  return (body && body.error) || 'HTTP ' + status
+}
     const PAGE_SIZE = 6
 
     /** Filled in apply(); the slot components are rendered by the shell, not by us. */
@@ -394,11 +405,11 @@ window.__ModuleLoader__.load({
             .then(function (response) {
               return response.json().then(
                 function (body) {
-                  if (!response.ok) throw new Error((body && body.error) || 'HTTP ' + response.status)
+                  if (!response.ok) throw new Error(describeFailure(response.status, body))
                   return body
                 },
                 function () {
-                  throw new Error('HTTP ' + response.status)
+                  throw new Error(describeFailure(response.status, null))
                 },
               )
             })

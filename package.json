@@ -1,6 +1,6 @@
 {
   "name": "@royalsan/dsh-github-trending",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "GitHub Trending radar: fetch daily/weekly/monthly boards, analyze every repository, and render an interactive card report inside the Harness Web UI.",
   "license": "MIT",

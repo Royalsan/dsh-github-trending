@@ -394,12 +394,36 @@ export function apply(ctx                 , config                   = {})      
     effect(() => commands.register(commandDefinition(ctx)))
   }
 
-  const web = safeGet(ctx, 'webServer')
-  if (web && typeof web.register === 'function') {
-    effect(() => web.register(reportRoute(ctx)))
-    logInfo(ctx, `route mounted at ${ROUTE_BASE}/report`)
+  // The panel is served by the HTTP carrier. It may activate after this plugin
+  // (or restart) so mount reactively instead of probing once at apply time.
+  const mountRoute = (host     )                         => {
+    try {
+      const server = (host && typeof host.get === 'function' ? host.get('webServer') : undefined) ?? host?.webServer
+      if (!server || typeof server.register !== 'function') return undefined
+      const disposeRoute = server.register(reportRoute(ctx))
+      logInfo(ctx, `route mounted at ${ROUTE_BASE}/report`)
+      return typeof disposeRoute === 'function' ? disposeRoute : () => undefined
+    } catch (error) {
+      logInfo(ctx, `route mount failed: ${error instanceof Error ? error.message : String(error)}`)
+      return undefined
+    }
+  }
+
+  const inject                                                                           = (ctx       ).inject
+  if (typeof inject === 'function') {
+    inject.call(ctx, ['webServer'], (host     ) => {
+      effect(() => mountRoute(host) ?? (() => undefined))
+    })
   } else {
-    logInfo(ctx, 'webServer service unavailable — the panel feed will not be served')
+    let mounted                        
+    let tries = 0
+    const attempt = ()       => {
+      mounted = mounted ?? mountRoute(ctx)
+      if (!mounted && tries++ < 40) setTimeout(attempt, 250)
+      if (!mounted && tries >= 40) logInfo(ctx, 'webServer service unavailable — the panel feed will not be served')
+    }
+    attempt()
+    effect(() => () => mounted?.())
   }
 
   logInfo(
